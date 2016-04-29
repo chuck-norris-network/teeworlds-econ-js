@@ -3,8 +3,7 @@
   "version": "0.0.0",
   "description": "Teeworlds external console wrapper",
   "main": "./lib/teeworlds-econ",
-  "scripts": {
-  },
+  "scripts": {},
   "author": {
     "name": "Black Roland",
     "url": "https://github.com/black-roland"
@@ -13,4 +12,10 @@
   "keywords": [
     "teeworlds"
   ],
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-coffeelint": "^0.6.0",
+    "gulp-exclude-gitignore": "^1.0.0",
+    "gulp-nsp": "^2.4.0"
+  }
 }
