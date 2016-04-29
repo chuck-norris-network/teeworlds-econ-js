@@ -1,0 +1,16 @@
+{
+  "name": "teeworlds-econ",
+  "version": "0.0.0",
+  "description": "Teeworlds external console wrapper",
+  "main": "./lib/teeworlds-econ",
+  "scripts": {
+  },
+  "author": {
+    "name": "Black Roland",
+    "url": "https://github.com/black-roland"
+  },
+  "license": "MIT",
+  "keywords": [
+    "teeworlds"
+  ],
+}
