@@ -5,8 +5,10 @@ splitText = require 'split-text'
 
 class TeeworldsEcon extends EventEmitter
 
-  constructor: (@options) ->
+  constructor: (host, port, password) ->
     super
+
+    @server = { host, port, password }
 
     @connection = null
 
@@ -20,8 +22,8 @@ class TeeworldsEcon extends EventEmitter
   say: (message) ->
     # split long message to chunks
     chunks = message
-      .split('\n')
-      .map(@escape)
+      .split '\n'
+      .map @escape
       .map (line) ->
         splitText line, 61
       .reduce (a, b) ->
@@ -70,7 +72,7 @@ class TeeworldsEcon extends EventEmitter
 
     # authentication request
     if message == 'Enter password:'
-      @exec @options.password
+      @exec @server.password
       return
 
     # connected
@@ -104,7 +106,7 @@ class TeeworldsEcon extends EventEmitter
 
     @connection.setKeepAlive true
 
-    @connection.connect @options.port, @options.host
+    @connection.connect @server.port, @server.host
 
   disconnect: () =>
     return if !@connection
