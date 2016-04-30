@@ -82,7 +82,7 @@ class TeeworldsEcon extends EventEmitter
       return
 
     # kill
-    if matches = /^\[game\]: kill killer='[0-9-]+:([^']+)' victim='[0-9-]+:([^']+)' weapon=([0-9]+) special=[0-9]+$/.exec message
+    if matches = /^\[game\]: kill killer='[0-9-]+:([^']+)' victim='[0-9-]+:([^']+)' weapon=([-0-9]+) special=[0-9]+$/.exec message
       return if matches[3] == '-3'
       @emit 'kill', matches[1], matches[2], parseWeapon(parseInt(matches[3]))
       return
