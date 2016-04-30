@@ -2,10 +2,18 @@
 { EventEmitter } = require 'events'
 split = require 'split'
 splitText = require 'split-text'
-{ parseWeapon } = require './utils'
+{ parseWeapon, escape } = require './utils'
 
+# Teeworlds external console wrapper class
+#
 class TeeworldsEcon extends EventEmitter
 
+  # Constructor
+  #
+  # @param {String} host
+  # @param {Integet} port
+  # @param {String} pasword
+  #
   constructor: (host, port, password) ->
     super
 
@@ -13,6 +21,10 @@ class TeeworldsEcon extends EventEmitter
 
     @connection = null
 
+  # Execute any command on server
+  #
+  # @param {String} command
+  #
   exec: (command) ->
     if !@connection
       @emit 'error', new Error 'Not connected'
@@ -20,11 +32,15 @@ class TeeworldsEcon extends EventEmitter
 
     @connection.write command + '\n'
 
+  # Say something to chat
+  #
+  # @param {String} message
+  #
   say: (message) ->
     # split long message to chunks
     chunks = message
       .split '\n'
-      .map @escape
+      .map escape
       .map (line) ->
         splitText line, 61
       .reduce (a, b) ->
@@ -33,18 +49,17 @@ class TeeworldsEcon extends EventEmitter
     # execute say command
     @exec "say \"#{chunk}\"" for chunk in chunks
 
-  motd: (motd) ->
-    @exec "sv_motd \"#{@escape motd}\""
+  # Set server message of the day
+  #
+  # @param {String} message
+  #
+  motd: (message) ->
+    @exec "sv_motd \"#{escape message}\""
 
-  escape: (string) ->
-    # escape quotes
-    string = string.replace /"/g, '\\"'
-
-    # escape line breaks
-    string = string.replace /\n/g, '\\n'
-
-    return string
-
+  # Method for parsing incoming econ messages
+  #
+  # @param {String} message
+  #
   handleMessage: (message) =>
     # chat enter
     if matches = /^\[chat\]: \*\*\* '([^']+)' entered and joined the.*/.exec message
@@ -92,6 +107,8 @@ class TeeworldsEcon extends EventEmitter
       @emit 'error', new Error 'Authentication timeout. Disconnecting'
       return @disconnect()
 
+  # Connect to server econ
+  #
   connect: () ->
     return if @connection
 
@@ -110,6 +127,8 @@ class TeeworldsEcon extends EventEmitter
 
     @connection.connect @server.port, @server.host
 
+  # Disconnect from server
+  #
   disconnect: () =>
     return if !@connection
 
