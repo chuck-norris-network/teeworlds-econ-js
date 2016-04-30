@@ -15,11 +15,6 @@
     "url": "https://github.com/black-roland/teeworlds-econ-js.git"
   },
   "main": "./lib/teeworlds-econ.js",
-  "files": [
-    "lib",
-    "LICENSE",
-    "README.md"
-  ],
   "scripts": {
     "prepublish": "gulp prepublish",
     "build": "gulp build"
