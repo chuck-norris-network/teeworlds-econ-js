@@ -33,8 +33,8 @@ class TeeworldsEcon extends EventEmitter
     # execute say command
     @exec "say \"#{chunk}\"" for chunk in chunks
 
-  topic: (topic) ->
-    @exec "sv_motd \"#{@escape topic}\""
+  motd: (motd) ->
+    @exec "sv_motd \"#{@escape motd}\""
 
   escape: (string) ->
     # escape quotes
