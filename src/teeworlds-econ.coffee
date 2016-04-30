@@ -2,6 +2,7 @@
 { EventEmitter } = require 'events'
 split = require 'split'
 splitText = require 'split-text'
+{ parseWeapon } = require './utils'
 
 class TeeworldsEcon extends EventEmitter
 
@@ -62,12 +63,13 @@ class TeeworldsEcon extends EventEmitter
 
     # pickup
     if matches = /^\[game\]: pickup player='[0-9-]+:([^']+)' item=(2|3)+\/([0-9\/]+)$/.exec message
-      @emit 'pickup', matches[1], parseInt matches[3]
+      @emit 'pickup', matches[1], parseWeapon(matches[3])
       return
 
     # kill
     if matches = /^\[game\]: kill killer='[0-9-]+:([^']+)' victim='[0-9-]+:([^']+)' weapon=([0-9]+) special=[0-9]+$/.exec message
-      @emit 'kill', matches[1], matches[2], parseInt matches[3]
+      return if matches[3] == '-3'
+      @emit 'kill', matches[1], matches[2], parseWeapon(matches[3])
       return
 
     # authentication request
