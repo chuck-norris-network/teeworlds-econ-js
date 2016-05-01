@@ -20,6 +20,11 @@ class TeeworldsEcon extends EventEmitter
     @server = { host, port, password }
 
     @connection = null
+    @connected = false
+
+    @retryDelay = null
+    @retryCount = null
+    @retryTimer = null
 
   # Execute any command on server
   #
@@ -94,23 +99,36 @@ class TeeworldsEcon extends EventEmitter
 
     # connected
     if message == 'Authentication successful. External console access granted.'
-      @emit 'online'
+      unless @connected
+        @connected = true
+        @emit 'online'
+      else
+        @emit 'reconnected'
       return
 
     # wrong password
     if /^Wrong password [0-9\/]+.$/.exec message
       @emit 'error', new Error "#{message} Disconnecting"
-      return @disconnect()
+      @disconnect()
+      @emit 'end'
+      return
 
     # authentication timeout
     if message == 'authentication timeout'
       @emit 'error', new Error 'Authentication timeout. Disconnecting'
-      return @disconnect()
+      @disconnect()
+      @emit 'end'
+      return
 
   # Connect to server econ
   #
-  connect: () ->
+  # @param {Object} connectionParams
+  #
+  connect: (connectionParams = {}) ->
     return if @connection
+
+    @retryDelay = if connectionParams.retryDelay then connectionParams.retryDelay else 5000
+    @retryCount = if connectionParams.retryCount then connectionParams.retryCount else -1
 
     @connection = new Socket()
 
@@ -120,12 +138,33 @@ class TeeworldsEcon extends EventEmitter
 
     @connection.on 'error', (err) =>
       @emit 'error', err
-    @connection.on 'close', @disconnect
-    @connection.on 'end', @disconnect
+    @connection.on 'close', @reconnect
+    @connection.on 'end', @reconnect
 
     @connection.setKeepAlive true
 
     @connection.connect @server.port, @server.host
+
+  # Reconnect on connection lost
+  #
+  # @example Set connection params
+  #   econ.connect({ retryDelay: 5000, retryCount: -1 })
+  #
+  reconnect: () =>
+    return if @retryTimer
+
+    if @retryCount == 0
+      @disconnect()
+      @emit 'end'
+      return
+    @retryCount-- if @retryCount > 0
+
+    @emit 'reconnect'
+    @retryTimer = setTimeout () =>
+      @retryTimer = null
+      @disconnect()
+      @connect({ @retryDelay, @retryCount })
+    , @retryDelay
 
   # Disconnect from server
   #
@@ -138,6 +177,5 @@ class TeeworldsEcon extends EventEmitter
     @connection.destroy()
     @connection.unref()
     @connection = null
-    @emit 'end'
 
 module.exports = TeeworldsEcon
