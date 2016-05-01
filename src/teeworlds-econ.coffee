@@ -133,7 +133,7 @@ class TeeworldsEcon extends EventEmitter
     @connection = new Socket()
 
     @connection
-      .pipe split('\n\u0000\u0000')
+      .pipe split(/(\r?\n\u0000{0,})/)
       .on 'data', @handleMessage
 
     @connection.on 'error', (err) =>
