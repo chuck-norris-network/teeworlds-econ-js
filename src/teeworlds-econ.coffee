@@ -42,7 +42,7 @@ class TeeworldsEcon extends EventEmitter
       .split '\n'
       .map escape
       .map (line) ->
-        splitText line, 61
+        splitText line, 60
       .reduce (a, b) ->
         a.concat b
 
