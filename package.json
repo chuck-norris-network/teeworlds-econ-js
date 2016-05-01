@@ -1,7 +1,7 @@
 {
   "name": "teeworlds-econ",
   "version": "0.0.0",
-  "description": "Teeworlds external console wrapper",
+  "description": "Teeworlds external console client",
   "author": {
     "name": "Black Roland",
     "url": "https://github.com/black-roland"
