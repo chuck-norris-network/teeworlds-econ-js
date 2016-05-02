@@ -5,15 +5,13 @@ splitText = require 'split-text'
 { parseWeapon, escape } = require './utils'
 
 # Teeworlds external console wrapper class
-#
 class TeeworldsEcon extends EventEmitter
 
   # Constructor
   #
   # @param {String} host
-  # @param {Integet} port
+  # @param {Integer} port
   # @param {String} pasword
-  #
   constructor: (host, port, password) ->
     super
 
@@ -29,7 +27,7 @@ class TeeworldsEcon extends EventEmitter
   # Execute any command on server
   #
   # @param {String} command
-  #
+  # @event error
   exec: (command) ->
     if !@connection
       @emit 'error', new Error 'Not connected'
@@ -40,7 +38,6 @@ class TeeworldsEcon extends EventEmitter
   # Say something to chat
   #
   # @param {String} message
-  #
   say: (message) ->
     # split long message to chunks
     chunks = message
@@ -57,14 +54,21 @@ class TeeworldsEcon extends EventEmitter
   # Set server message of the day
   #
   # @param {String} message
-  #
   motd: (message) ->
     @exec "sv_motd \"#{escape message}\""
 
   # Method for parsing incoming econ messages
   #
   # @param {String} message
-  #
+  # @event enter
+  # @event leave
+  # @event chat
+  # @event pickup
+  # @event kill
+  # @event online
+  # @event reconnected
+  # @event error
+  # @event end
   handleMessage: (message) =>
     # chat enter
     if matches = /^\[chat\]: \*\*\* '([^']+)' entered and joined the.*/.exec message
@@ -122,8 +126,11 @@ class TeeworldsEcon extends EventEmitter
 
   # Connect to server econ
   #
-  # @param {Object} connectionParams
+  # @example Set connection params
+  #   econ.connect({ retryDelay: 5000, retryCount: -1 })
   #
+  # @param {Object} connectionParams
+  # @event error
   connect: (connectionParams = {}) ->
     return if @connection
 
@@ -146,10 +153,6 @@ class TeeworldsEcon extends EventEmitter
     @connection.connect @server.port, @server.host
 
   # Reconnect on connection lost
-  #
-  # @example Set connection params
-  #   econ.connect({ retryDelay: 5000, retryCount: -1 })
-  #
   reconnect: () =>
     return if @retryTimer
 
@@ -167,7 +170,6 @@ class TeeworldsEcon extends EventEmitter
     , @retryDelay
 
   # Disconnect from server
-  #
   disconnect: () =>
     return if !@connection
 
