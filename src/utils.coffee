@@ -11,11 +11,11 @@ module.exports.parseWeapon = (id) ->
 # @param {String} input
 # @return {String}
 module.exports.escape = (input) ->
-  # escape quotes
-  string = input.replace /"/g, '\\"'
-
   # escape backslashes
-  string = string.replace /\\/g, '\\\\'
+  string = input.replace /\\/g, '\\\\'
+
+  # escape quotes
+  string = string.replace /"/g, '\\"'
 
   # escape line breaks
   string = string.replace /\n/g, '\\n'
