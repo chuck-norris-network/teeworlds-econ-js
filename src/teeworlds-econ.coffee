@@ -62,11 +62,11 @@ class TeeworldsEcon extends EventEmitter
   # Method for parsing incoming econ messages
   #
   # @param {String} message
-  # @event enter
-  # @event leave
-  # @event chat
-  # @event pickup
-  # @event kill
+  # @event enter { player, team, ip }
+  # @event leave { player }
+  # @event chat { player, message }
+  # @event pickup { player, weapon }
+  # @event kill { killer, victim, weapon }
   # @event online
   # @event reconnected
   # @event error
