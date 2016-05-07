@@ -77,31 +77,47 @@ class TeeworldsEcon extends EventEmitter
       @lastClientIp = matches[1]
       return
 
-    # chat enter
+    # enter
     if matches = /^\[chat\]: \*\*\* '([^']+)' entered and joined the (.*)$/.exec message
-      @emit 'enter', matches[1], matches[2], @lastClientIp
+      @emit 'enter', {
+        player: matches[1]
+        team: matches[2]
+        ip: @lastClientIp
+      }
       @lastClientIp = null
       return
 
-    # chat leave
+    # leave
     if matches = /^\[chat\]: \*\*\* '([^']+)' has left the game.*/.exec message
-      @emit 'leave', matches[1]
+      @emit 'leave', {
+        player: matches[1]
+      }
       return
 
     # chat message
     if matches = /^\[(teamchat|chat)\]: [0-9]+:[0-9-]+:([^:]+): (.*)$/.exec message
-      @emit 'chat', matches[2], matches[3]
+      @emit 'chat', {
+        player: matches[2]
+        message: matches[3]
+      }
       return
 
     # pickup
     if matches = /^\[game\]: pickup player='[0-9-]+:([^']+)' item=(2|3)+\/([0-9\/]+)$/.exec message
-      @emit 'pickup', matches[1], parseWeapon(parseInt(matches[3]))
+      @emit 'pickup', {
+        player: matches[1]
+        weapon: parseWeapon(parseInt(matches[3]))
+      }
       return
 
     # kill
     if matches = /^\[game\]: kill killer='[0-9-]+:([^']+)' victim='[0-9-]+:([^']+)' weapon=([-0-9]+) special=[0-9]+$/.exec message
       return if matches[3] == '-3'
-      @emit 'kill', matches[1], matches[2], parseWeapon(parseInt(matches[3]))
+      @emit 'kill', {
+        killer: matches[1]
+        victim: matches[2]
+        weapon: parseWeapon(parseInt(matches[3]))
+      }
       return
 
     # authentication request
