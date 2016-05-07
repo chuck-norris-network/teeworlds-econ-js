@@ -28,7 +28,7 @@ ec_output_level 2
 import TeeworldsEcon from 'teeworlds-econ'
 
 const host = 'localhost'
-const port = '8303'
+const port = 8303
 const password = 'secret'
 
 const econ = new TeeworldsEcon(host, port, password);
