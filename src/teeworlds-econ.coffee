@@ -71,8 +71,8 @@ class TeeworldsEcon extends EventEmitter
   # @event end
   handleMessage: (message) =>
     # chat enter
-    if matches = /^\[chat\]: \*\*\* '([^']+)' entered and joined the.*/.exec message
-      @emit 'enter', matches[1]
+    if matches = /^\[chat\]: \*\*\* '([^']+)' entered and joined the (.*)$/.exec message
+      @emit 'enter', matches[1], matches[2]
       return
 
     # chat leave
