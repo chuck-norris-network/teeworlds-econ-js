@@ -161,6 +161,9 @@ class TeeworldsEcon extends EventEmitter
     @connection.connect @server.port, @server.host
 
   # Reconnect on connection lost
+  #
+  # event end
+  # event reconnect
   reconnect: () =>
     return if @retryTimer
 
