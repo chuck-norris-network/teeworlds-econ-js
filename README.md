@@ -38,24 +38,24 @@ econ.connect();
 ## Handling game events
 
 ```js
-econ.on('enter', (player) => {
-  console.log('%s has entered the game', player);
+econ.on('enter', (e) => {
+  console.log('%s (%s) has entered the %s', e.player, e.ip, e.team);
 });
 
-econ.on('leave', (player) => {
-  console.log('%s has left the game', player);
+econ.on('leave', (e) => {
+  console.log('%s has left the game', e.player);
 });
 
-econ.on('chat', (player, message) => {
-  console.log('%s: "%s"', player, message);
+econ.on('chat', (e) => {
+  console.log('%s: "%s"', e.player, e.message);
 });
 
-econ.on('pickup', (player, weapon) => {
-  console.log('%s picked up %s', player, weapon);
+econ.on('pickup', (e) => {
+  console.log('%s picked up %s', e.player, e.weapon);
 });
 
-econ.on('kill', (killer, victim, weapon) => {
-  console.log('%s killed %s with %s', killer, victim, weapon);
+econ.on('kill', (e) => {
+  console.log('%s killed %s with %s', e.killer, e.victim, e.weapon);
 });
 ```
 
