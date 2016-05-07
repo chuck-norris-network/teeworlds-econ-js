@@ -24,6 +24,8 @@ class TeeworldsEcon extends EventEmitter
     @retryCount = null
     @retryTimer = null
 
+    @lastClientIp = null
+
   # Execute any command on server
   #
   # @param {String} command
@@ -70,9 +72,15 @@ class TeeworldsEcon extends EventEmitter
   # @event error
   # @event end
   handleMessage: (message) =>
+    # client connection
+    if matches = /^\[server\]: player has entered the game. ClientID=[0-9]+ addr=([0-9a-f.:]+):[0-9]+$/.exec message
+      @lastClientIp = matches[1]
+      return
+
     # chat enter
     if matches = /^\[chat\]: \*\*\* '([^']+)' entered and joined the (.*)$/.exec message
-      @emit 'enter', matches[1], matches[2]
+      @emit 'enter', matches[1], matches[2], @lastClientIp
+      @lastClientIp = null
       return
 
     # chat leave
