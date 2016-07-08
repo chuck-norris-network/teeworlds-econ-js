@@ -159,14 +159,14 @@ class TeeworldsEcon extends EventEmitter
   # Connect to server econ
   #
   # @example Set connection params
-  #   econ.connect({ retryDelay: 5000, retryCount: -1 })
+  #   econ.connect({ retryDelay: 30000, retryCount: -1 })
   #
   # @param {Object} connectionParams
   # @event error
   connect: (connectionParams = {}) ->
     return if @connection
 
-    @retryDelay = if connectionParams.retryDelay then connectionParams.retryDelay else 5000
+    @retryDelay = if connectionParams.retryDelay then connectionParams.retryDelay else 30000
     @retryCount = if connectionParams.retryCount then connectionParams.retryCount else -1
 
     @connection = new Socket()
