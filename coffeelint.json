@@ -1,4 +1,20 @@
 {
+  "check_scope": {
+    "module": "coffeescope2",
+    "level": "warn",
+    "environments": ["node", "es6"],
+    "globals": {},
+    "overwrite": true,
+    "shadow": true,
+    "shadow_builtins": false,
+    "shadow_exceptions": ["err", "next"],
+    "undefined": true,
+    "hoist_local": true,
+    "hoist_parent": true,
+    "unused_variables": true,
+    "unused_arguments": false,
+    "unused_classes": true
+  },
   "arrow_spacing": {
     "level": "ignore"
   },
