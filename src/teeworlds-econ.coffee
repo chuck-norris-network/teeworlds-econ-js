@@ -64,7 +64,7 @@ class TeeworldsEcon extends EventEmitter
   # @param {String} message
   # @event enter { player, team, ip }
   # @event leave { player }
-  # @event chat { player, message }
+  # @event chat { type, player, message }
   # @event pickup { player, weapon }
   # @event kill { killer, victim, weapon }
   # @event online
@@ -85,20 +85,28 @@ class TeeworldsEcon extends EventEmitter
         ip: @lastClientIp
       }
       @lastClientIp = null
-      return
 
     # leave
     if matches = /^\[chat\]: \*\*\* '([^']+)' has left the game.*/.exec message
       @emit 'leave', {
         player: matches[1]
       }
-      return
 
     # chat message
     if matches = /^\[(teamchat|chat)\]: [0-9]+:[0-9-]+:([^:]+): (.*)$/.exec message
       @emit 'chat', {
+        type: matches[1]
         player: matches[2]
         message: matches[3]
+      }
+      return
+
+    # server chat message
+    if matches = /^\[chat\]: \*\*\* (.*)$/.exec message
+      @emit 'chat', {
+        type: 'server'
+        player: null
+        message: matches[1]
       }
       return
 
