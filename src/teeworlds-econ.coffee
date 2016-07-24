@@ -41,7 +41,7 @@ class TeeworldsEcon extends EventEmitter
   #
   # @param {String} message
   # @param {Integer} limit max line length
-  say: (message, limit = 60) ->
+  say: (message, limit = 256) ->
     # maximum line length = 256
     limit = 256 if limit > 256
     # split long message to chunks
