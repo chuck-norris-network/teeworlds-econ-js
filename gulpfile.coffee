@@ -4,6 +4,7 @@ coffeelint       = require 'gulp-coffeelint'
 excludeGitignore = require 'gulp-exclude-gitignore'
 nsp              = require 'gulp-nsp'
 coffee           = require 'gulp-coffee'
+codo             = require 'gulp-codo'
 
 gulp.task 'static', () ->
   gulp.src '**/*.coffee'
@@ -17,8 +18,17 @@ gulp.task 'build', () ->
     .pipe coffee({ bare: true })
     .pipe gulp.dest('./lib')
 
+gulp.task 'doc', () ->
+  gulp.src './src/**/*.coffee', read: false
+    .pipe codo(
+      name: 'Teeworlds External Console'
+      title: 'Teeworlds External Console documentation'
+      readme: 'README.md'
+      extra: 'LICENSE.md'
+    )
+
 gulp.task 'nsp', (done) ->
   nsp { package: path.resolve('./package.json') }, done
 
 gulp.task 'prepublish', ['static', 'nsp', 'build']
-gulp.task 'default', ['static', 'build']
+gulp.task 'default', ['static', 'nsp', 'build', 'doc']

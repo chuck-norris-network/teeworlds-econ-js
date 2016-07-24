@@ -1,3 +1,7 @@
-src
-gulp
+.gitattributes
+.gitignore
+.tags*
+doc
 gulpfile.coffee
+node_modules
+src
