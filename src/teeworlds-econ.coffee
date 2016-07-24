@@ -40,13 +40,16 @@ class TeeworldsEcon extends EventEmitter
   # Say something to chat
   #
   # @param {String} message
-  say: (message) ->
+  # @param {Integer} limit max line length
+  say: (message, limit = 60) ->
+    # maximum line length = 256
+    limit = 256 if limit > 256
     # split long message to chunks
     chunks = message
       .split '\n'
       .map escape
       .map (line) ->
-        splitText line, 60
+        splitText line, limit
       .reduce (a, b) ->
         a.concat b
 
