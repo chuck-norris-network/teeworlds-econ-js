@@ -30,5 +30,4 @@ gulp.task 'doc', () ->
 gulp.task 'nsp', (done) ->
   nsp { package: path.resolve('./package.json') }, done
 
-gulp.task 'prepublish', ['static', 'nsp', 'build']
 gulp.task 'default', ['static', 'nsp', 'build', 'doc']

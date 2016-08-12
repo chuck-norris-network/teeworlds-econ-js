@@ -15,8 +15,8 @@
     "teeworlds"
   ],
   "scripts": {
-    "prepublish": "gulp prepublish",
-    "build": "gulp default",
+    "prepublish": "gulp static nsp build",
+    "build": "gulp",
     "doc": "gulp doc",
     "test": "gulp static",
     "current": "ncu -u -a"
