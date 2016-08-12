@@ -31,11 +31,11 @@ class TeeworldsEcon extends EventEmitter
   # @param {String} command
   # @event error
   exec: (command) ->
-    if !@connection
+    unless @isConnected()
       @emit 'error', new Error 'Not connected'
       return
 
-    @connection.write command + '\n'
+    @write command
 
   # Say something to chat
   #
@@ -61,6 +61,13 @@ class TeeworldsEcon extends EventEmitter
   # @param {String} message
   motd: (message) ->
     @exec "sv_motd \"#{escape message}\""
+
+  # Write to econ socket
+  #
+  # @param {String} string string
+  write: (string) ->
+    return unless @connection and @connection.writable
+    @connection.write string + '\n'
 
   # Method for parsing incoming econ messages
   #
@@ -143,7 +150,7 @@ class TeeworldsEcon extends EventEmitter
 
     # authentication request
     if message == 'Enter password:'
-      @exec @server.password
+      @write @server.password
       return
 
     # connected
@@ -228,5 +235,11 @@ class TeeworldsEcon extends EventEmitter
     @connection.destroy()
     @connection.unref()
     @connection = null
+
+  # Check connection status
+  #
+  # @return {Boolean} is connected/disconnected
+  isConnected: () ->
+    return @connection and @connection.writable and @connected
 
 module.exports = TeeworldsEcon
