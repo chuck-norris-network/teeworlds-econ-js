@@ -138,6 +138,18 @@ class TeeworldsEcon extends EventEmitter
       }
       return
 
+    # flag grab
+    if matches = /^\[game\]: flag_grab player='[0-9-]+:([^']+)'$/.exec message
+      @emit 'flaggrab', {
+        player: matches[1]
+      }
+      return
+
+    # flag return
+    if matches = /^\[game\]: flag_return$/.exec message
+      @emit 'flagreturn', {}
+      return
+
     # kill
     if matches = /^\[game\]: kill killer='[0-9-]+:([^']+)' victim='[0-9-]+:([^']+)' weapon=([-0-9]+) special=[0-9]+$/.exec message
       return if matches[3] == '-3'
