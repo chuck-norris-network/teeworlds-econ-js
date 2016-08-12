@@ -21,10 +21,11 @@ gulp.task 'build', () ->
 gulp.task 'doc', () ->
   gulp.src './src/**/*.coffee', read: false
     .pipe codo(
-      name: 'Teeworlds External Console'
-      title: 'Teeworlds External Console documentation'
-      readme: 'README.md'
-      extra: 'LICENSE.md'
+      name:    'Teeworlds External Console'
+      title:   'Teeworlds External Console documentation'
+      readme:  'README.md'
+      extra:   'LICENSE.md'
+      private: true
     )
 
 gulp.task 'nsp', (done) ->

@@ -64,6 +64,7 @@ class TeeworldsEcon extends EventEmitter
 
   # Method for parsing incoming econ messages
   #
+  # @private
   # @param {String} message
   # @event enter { player, team, ip }
   # @event leave { player }
@@ -189,8 +190,9 @@ class TeeworldsEcon extends EventEmitter
 
   # Reconnect on connection lost
   #
-  # event end
-  # event reconnect
+  # @private
+  # @event end
+  # @event reconnect
   reconnect: () =>
     return if @retryTimer
 
