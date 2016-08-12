@@ -68,7 +68,7 @@ econ.exec('sv_map dm2'); // Change current map to dm2
 
 ## License
 
-LGPL-3.0
+MIT
 
 [npm-image]: https://badge.fury.io/js/teeworlds-econ.svg
 [npm-url]: https://www.npmjs.com/package/teeworlds-econ
