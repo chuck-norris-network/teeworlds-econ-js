@@ -68,6 +68,7 @@ class TeeworldsEcon extends EventEmitter
   # @param {String} message
   # @event enter { player, team, ip }
   # @event leave { player }
+  # @event capture { flag, player, time }
   # @event chat { type, player, message }
   # @event pickup { player, weapon }
   # @event kill { killer, victim, weapon }
@@ -94,6 +95,14 @@ class TeeworldsEcon extends EventEmitter
     if matches = /^\[chat\]: \*\*\* '([^']+)' has left the game.*/.exec message
       @emit 'leave', {
         player: matches[1]
+      }
+
+    # capture
+    if matches = /^\[chat\]: \*\*\* The ([^ ]+) flag was captured by '([^']+)' \(([0-9.]+) seconds\)$/.exec message
+      @emit 'capture', {
+        flag: matches[1]
+        player: matches[2]
+        time: parseFloat(matches[3]) * 1000
       }
 
     # chat message
