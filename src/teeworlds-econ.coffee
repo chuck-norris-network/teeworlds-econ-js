@@ -1,8 +1,6 @@
 { Socket } = require 'net'
 { EventEmitter } = require 'events'
-split = require 'split'
-splitText = require 'split-text'
-{ parseWeapon, escape } = require './utils'
+{ split, splitText, parseWeapon, escape } = require './utils'
 
 # Teeworlds external console wrapper class
 class TeeworldsEcon extends EventEmitter

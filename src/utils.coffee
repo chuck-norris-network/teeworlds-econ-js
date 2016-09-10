@@ -1,3 +1,12 @@
+split = require 'split'
+splitText = require 'split-text'
+
+# Split a Text Stream into a Line Stream
+module.exports.split = split
+
+# Split a text into an array of chunks
+module.exports.splitText = splitText
+
 # Parse ID of weapon item to human readable string
 #
 # @param {String} id
