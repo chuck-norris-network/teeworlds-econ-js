@@ -10,9 +10,16 @@ class TeeworldsEcon extends EventEmitter
   # @param {String} host
   # @param {Integer} port
   # @param {String} pasword
-  constructor: (host, port, password) ->
+  constructor: (args...) ->
     super
 
+    if typeof args[0] == 'object'
+      { host, port, password } = args[0]
+    else
+      [ host, port, password ] = args
+    throw new Error('Undefined host') unless host
+    throw new Error('Undefined port') unless port
+    throw new Error('Undefined password') unless password
     @server = { host, port, password }
 
     @connection = null
