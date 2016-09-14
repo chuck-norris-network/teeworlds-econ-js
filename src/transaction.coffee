@@ -1,5 +1,6 @@
 { generateTransactionId } = require './utils'
 { EventEmitter } = require 'events'
+{ EconError } = require './errors'
 
 # Econ transactions helper
 # @private
@@ -21,7 +22,7 @@ class Transaction extends EventEmitter
     @beginRe = new RegExp "^\\[Console\\]: begin #{@id}$"
     @endRe = new RegExp "^\\[Console\\]: end #{@id}$"
 
-    setTimeout (=> @emit 'error', new Error('Transaction timeout')), timeout
+    setTimeout (=> @emit 'error', new EconError('Transaction timeout')), timeout
 
   # Prepare command with begin/end parts
   #

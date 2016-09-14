@@ -1,6 +1,7 @@
 { Socket } = require 'net'
 { EventEmitter } = require 'events'
 Transaction = require './transaction'
+{ EconError, EconConnectionError } = require './errors'
 { split, splitText, parseWeapon, formatClient, escape, debug } = require './utils'
 
 # Teeworlds external console wrapper class
@@ -18,9 +19,9 @@ class TeeworldsEcon extends EventEmitter
       { host, port, password } = args[0]
     else
       [ host, port, password ] = args
-    throw new Error('Undefined host') unless host
-    throw new Error('Undefined port') unless port
-    throw new Error('Undefined password') unless password
+    throw new EconError('Undefined host') unless host
+    throw new EconError('Undefined port') unless port
+    throw new EconError('Undefined password') unless password
     @server = { host, port, password }
 
     @connection = null
@@ -52,7 +53,7 @@ class TeeworldsEcon extends EventEmitter
   # @return {Promise}
   exec: (command, { timeout = 30000 } = {}) ->
     unless @isConnected()
-      err = new Error 'Not connected'
+      err = new EconConnectionError 'Not connected'
       debug.connection '%s:%s econ error: %s', @server.host, @server.port, err.message
       @emit 'error', err
       return Promise.reject err
@@ -177,7 +178,7 @@ class TeeworldsEcon extends EventEmitter
 
     # wrong password
     if /^Wrong password [0-9\/]+.$/.exec message
-      err = new Error "#{message} Disconnecting"
+      err = new EconConnectionError "#{message} Disconnecting"
       debug.connection '%s:%s econ error: %s', @server.host, @server.port, err.message
       @emit 'error', err
       @disconnect()
@@ -186,7 +187,7 @@ class TeeworldsEcon extends EventEmitter
 
     # authentication timeout
     if message == 'authentication timeout'
-      err = new Error 'Authentication timeout. Disconnecting'
+      err = new EconConnectionError 'Authentication timeout. Disconnecting'
       debug.connection '%s:%s econ error: %s', @server.host, @server.port, err.message
       @emit 'error', err
       @disconnect()
