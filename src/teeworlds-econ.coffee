@@ -184,7 +184,7 @@ class TeeworldsEcon extends EventEmitter
   #
   # @param {TeeworldsEcon} econ
   # @param {String} message
-  # @event leave { player }
+  # @event leave { player, client }
   handleLeaveMessage: (econ, message) ->
     if matches = /^\[game\]: leave player='([0-9]+):(.+?)'$/.exec message
       debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'leave'
@@ -197,28 +197,31 @@ class TeeworldsEcon extends EventEmitter
   #
   # @param {TeeworldsEcon} econ
   # @param {String} message
-  # @event enter { player, weapon }
+  # @event enter { player, weapon, client }
   handlePickupMessage: (econ, message) ->
-    if matches = /^\[game\]: pickup player='[0-9-]+:([^']+)' item=(2|3)+\/([0-9\/]+)$/.exec message
+    if matches = /^\[game\]: pickup player='([0-9]+):(.+?)' item=(2|3)+\/([0-9]+)$/.exec message
       debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'pickup'
       econ.emit 'pickup', {
-        player: matches[1]
-        weapon: parseWeapon(parseInt(matches[3]))
+        player: matches[2]
+        weapon: parseWeapon(parseInt(matches[4]))
+        client: formatClient(econ.getClientInfo(parseInt(matches[1])))
       }
 
   # Chat messages handler
   #
   # @param {TeeworldsEcon} econ
   # @param {String} message
-  # @event chat { type, player, message }
+  # @event chat { type, player, message, team, client }
   handleChatMessage: (econ, message) ->
     # player chat message
-    if matches = /^\[(teamchat|chat)\]: [0-9]+:[0-9-]+:([^:]+): (.*)$/.exec message
+    if matches = /^\[(teamchat|chat)\]: ([0-9]+):([0-9-]+):(.+?): (.*)$/.exec message
       debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'chat'
       econ.emit 'chat', {
         type: matches[1]
-        player: matches[2]
-        message: matches[3]
+        player: matches[4]
+        message: matches[5]
+        team: parseInt(matches[3])
+        client: formatClient(econ.getClientInfo(parseInt(matches[2])))
       }
 
     # server chat message
@@ -228,33 +231,38 @@ class TeeworldsEcon extends EventEmitter
         type: 'server'
         player: null
         message: matches[1]
+        team: null
+        client: null
       }
 
   # Kill messages handler
   #
   # @param {TeeworldsEcon} econ
   # @param {String} message
-  # @event kill { killer, victim, weapon }
+  # @event kill { killer, victim, weapon, killerClient, victimClient }
   handleKillMessage: (econ, message) ->
-    if matches = /^\[game\]: kill killer='[0-9-]+:([^']+)' victim='[0-9-]+:([^']+)' weapon=([-0-9]+) special=[0-9]+$/.exec message
+    if matches = /^\[game\]: kill killer='([0-9]+):(.+?)' victim='([0-9]+)+:(.+?)' weapon=([0-9-]+) special=[0-9]+$/.exec message
       return if matches[3] == '-3'
       debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'kill'
       econ.emit 'kill', {
-        killer: matches[1]
-        victim: matches[2]
+        killer: matches[2]
+        victim: matches[4]
         weapon: parseWeapon(parseInt(matches[3]))
+        killerClient: formatClient(econ.getClientInfo(parseInt(matches[1])))
+        victimClient: formatClient(econ.getClientInfo(parseInt(matches[3])))
       }
 
   # Flag grab messages handler
   #
   # @param {TeeworldsEcon} econ
   # @param {String} message
-  # @event enter { player }
+  # @event enter { player, client }
   handleFlagGrabMessage: (econ, message) ->
-    if matches = /^\[game\]: flag_grab player='[0-9-]+:([^']+)'$/.exec message
+    if matches = /^\[game\]: flag_grab player='([0-9]+):(.+?)'$/.exec message
       debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'flaggrab'
       econ.emit 'flaggrab', {
-        player: matches[1]
+        player: matches[2]
+        client: formatClient(econ.getClientInfo(parseInt(matches[1])))
       }
 
   # Flag return messages handler
@@ -270,14 +278,13 @@ class TeeworldsEcon extends EventEmitter
   #
   # @param {TeeworldsEcon} econ
   # @param {String} message
-  # @event enter { flag, player, time }
+  # @event enter { player, client }
   handleCaptureMessage: (econ, message) ->
-    if matches = /^\[chat\]: \*\*\* The ([^ ]+) flag was captured by '([^']+)' \(([0-9.]+) seconds\)$/.exec message
+    if matches = /^\[game\]: flag_capture player='([0-9]+):(.+?)'$/.exec message
       debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'capture'
       econ.emit 'capture', {
-        flag: matches[1]
         player: matches[2]
-        time: parseFloat(matches[3]) * 1000
+        client: formatClient(econ.getClientInfo(parseInt(matches[1])))
       }
 
   # Assign info for client with specified ID
