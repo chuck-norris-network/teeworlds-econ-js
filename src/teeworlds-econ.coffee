@@ -249,7 +249,7 @@ class TeeworldsEcon extends EventEmitter
   # @event kill { killer, victim, weapon, killerClient, victimClient }
   handleKillMessage: (econ, message) ->
     if matches = /^\[game\]: kill killer='([0-9]+):(.+?)' victim='([0-9]+)+:(.+?)' weapon=([0-9-]+) special=[0-9]+$/.exec message
-      return if matches[3] == '-3'
+      return if matches[5] == '-3'
       debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'kill'
       econ.emit 'kill', {
         killer: matches[2]
