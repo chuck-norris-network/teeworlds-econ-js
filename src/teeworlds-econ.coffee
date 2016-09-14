@@ -1,8 +1,9 @@
 { Socket } = require 'net'
 { EventEmitter } = require 'events'
-Transaction = require './transaction'
 { EconError, EconConnectionError } = require './errors'
-{ split, splitText, parseWeapon, formatClient, escape, debug } = require './utils'
+{ split, splitText, escape, debug } = require './utils'
+Transaction = require './transaction'
+handlers = require './handlers'
 
 # Teeworlds external console wrapper class
 class TeeworldsEcon extends EventEmitter
@@ -36,15 +37,15 @@ class TeeworldsEcon extends EventEmitter
     @currentTransaction = null
 
     @resetHandlers()
-    @addHandler @handleEnterMessage
-    @addHandler @handleLeaveMessage
-    @addHandler @handlePickupMessage
-    @addHandler @handleChatMessage
-    @addHandler @handleKillMessage
-    @addHandler @handleFlagGrabMessage
-    @addHandler @handleFlagReturnMessage
-    @addHandler @handleCaptureMessage
-    @addHandler @handleNetBanMessage
+    @addHandler handlers.handleEnterMessage
+    @addHandler handlers.handleLeaveMessage
+    @addHandler handlers.handlePickupMessage
+    @addHandler handlers.handleChatMessage
+    @addHandler handlers.handleKillMessage
+    @addHandler handlers.handleFlagGrabMessage
+    @addHandler handlers.handleFlagReturnMessage
+    @addHandler handlers.handleCaptureMessage
+    @addHandler handlers.handleNetBanMessage
 
   # Execute any command on server
   #
@@ -193,151 +194,6 @@ class TeeworldsEcon extends EventEmitter
       @disconnect()
       @emit 'end'
       return
-
-  # Enter messages handler
-  #
-  # @param {TeeworldsEcon} econ
-  # @param {String} message
-  # @event enter { player, team, client }
-  handleEnterMessage: (econ, message) ->
-    if matches = /^\[game\]: team_join player='([0-9]+):(.+?)' team=([0-9]+)$/.exec message
-      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'enter'
-      econ.emit 'enter', {
-        player: matches[2]
-        team: parseInt(matches[3])
-        client: formatClient(econ.getClientInfo(parseInt(matches[1])))
-      }
-
-  # Leave messages handler
-  #
-  # @param {TeeworldsEcon} econ
-  # @param {String} message
-  # @event leave { player, client }
-  handleLeaveMessage: (econ, message) ->
-    if matches = /^\[game\]: leave player='([0-9]+):(.+?)'$/.exec message
-      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'leave'
-      econ.emit 'leave', {
-        player: matches[2]
-        client: formatClient(econ.getClientInfo(parseInt(matches[1])))
-      }
-
-  # Pickup messages handler
-  #
-  # @param {TeeworldsEcon} econ
-  # @param {String} message
-  # @event enter { player, weapon, client }
-  handlePickupMessage: (econ, message) ->
-    if matches = /^\[game\]: pickup player='([0-9]+):(.+?)' item=(2|3)+\/([0-9]+)$/.exec message
-      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'pickup'
-      econ.emit 'pickup', {
-        player: matches[2]
-        weapon: parseWeapon(parseInt(matches[4]))
-        client: formatClient(econ.getClientInfo(parseInt(matches[1])))
-      }
-
-  # Chat messages handler
-  #
-  # @param {TeeworldsEcon} econ
-  # @param {String} message
-  # @event chat { type, player, message, team, client }
-  handleChatMessage: (econ, message) ->
-    # player chat message
-    if matches = /^\[(teamchat|chat)\]: ([0-9]+):([0-9-]+):(.+?): (.*)$/.exec message
-      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'chat'
-      econ.emit 'chat', {
-        type: matches[1]
-        player: matches[4]
-        message: matches[5]
-        team: parseInt(matches[3])
-        client: formatClient(econ.getClientInfo(parseInt(matches[2])))
-      }
-
-    # server chat message
-    if matches = /^\[chat\]: \*\*\* (.*)$/.exec message
-      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'chat'
-      econ.emit 'chat', {
-        type: 'server'
-        player: null
-        message: matches[1]
-        team: null
-        client: null
-      }
-
-  # Kill messages handler
-  #
-  # @param {TeeworldsEcon} econ
-  # @param {String} message
-  # @event kill { killer, victim, weapon, killerClient, victimClient }
-  handleKillMessage: (econ, message) ->
-    if matches = /^\[game\]: kill killer='([0-9]+):(.+?)' victim='([0-9]+)+:(.+?)' weapon=([0-9-]+) special=[0-9]+$/.exec message
-      return if matches[5] == '-3'
-      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'kill'
-      econ.emit 'kill', {
-        killer: matches[2]
-        victim: matches[4]
-        weapon: parseWeapon(parseInt(matches[5]))
-        killerClient: formatClient(econ.getClientInfo(parseInt(matches[1])))
-        victimClient: formatClient(econ.getClientInfo(parseInt(matches[3])))
-      }
-
-  # Flag grab messages handler
-  #
-  # @param {TeeworldsEcon} econ
-  # @param {String} message
-  # @event enter { player, client }
-  handleFlagGrabMessage: (econ, message) ->
-    if matches = /^\[game\]: flag_grab player='([0-9]+):(.+?)'$/.exec message
-      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'flaggrab'
-      econ.emit 'flaggrab', {
-        player: matches[2]
-        client: formatClient(econ.getClientInfo(parseInt(matches[1])))
-      }
-
-  # Flag return messages handler
-  #
-  # @param {TeeworldsEcon} econ
-  # @param {String} message
-  handleFlagReturnMessage: (econ, message) ->
-    if /^\[game\]: flag_return$/.exec message
-      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'flagreturn'
-      econ.emit 'flagreturn', {}
-
-  # Flag capture messages handler
-  #
-  # @param {TeeworldsEcon} econ
-  # @param {String} message
-  # @event enter { player, client }
-  handleCaptureMessage: (econ, message) ->
-    if matches = /^\[game\]: flag_capture player='([0-9]+):(.+?)'$/.exec message
-      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'capture'
-      econ.emit 'capture', {
-        player: matches[2]
-        client: formatClient(econ.getClientInfo(parseInt(matches[1])))
-      }
-
-  # Network ban messages handler
-  #
-  # @param {TeeworldsEcon} econ
-  # @param {String} message
-  # @event enter { ip, reason, minutes, life }
-  handleNetBanMessage: (econ, message) ->
-    if matches = /^\[net_ban\]: '([^']+)' banned for ([0-9]+) minutes \((.+?)\)$/.exec message
-      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'netban'
-      econ.emit 'netban', {
-        ip: matches[1]
-        reason: matches[3]
-        minutes: matches[2]
-        life: false
-      }
-
-    if matches = /^\[net_ban\]: '([^']+)' banned for life \((.+?)\)$/.exec message
-      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'netban'
-      econ.emit 'netban', {
-        ip: matches[1]
-        reason: matches[2]
-        minutes: null
-        life: true
-      }
 
   # Assign info for client with specified ID
   #

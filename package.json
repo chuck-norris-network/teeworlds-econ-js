@@ -21,7 +21,7 @@
     "test": "gulp static",
     "current": "ncu -u -a"
   },
-  "main": "./lib/teeworlds-econ.js",
+  "main": "./lib/index.js",
   "dependencies": {
     "debug": "^2.2.0",
     "split": "^1.0.0",
