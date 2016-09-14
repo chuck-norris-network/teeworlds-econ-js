@@ -6,7 +6,7 @@
 # @param {String} message
 # @event enter { player, team, client }
 module.exports = (econ, message) ->
-  if matches = /^\[game\]: team_join player='([0-9]+):(.+?)' team=([0-9]+)$/.exec message
+  if matches = /^\[game\]: team_join player='([0-9]+):(.+?)' team=([0-9-]+)$/.exec message
     debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'enter'
     econ.emit 'enter', {
       player: matches[2]
