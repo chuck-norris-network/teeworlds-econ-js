@@ -1,7 +1,7 @@
 { Socket } = require 'net'
 { EventEmitter } = require 'events'
 { EconError, EconConnectionError } = require './errors'
-{ split, splitText, escape, debug } = require './utils'
+{ split, splitText, escape, parseStatus, debug } = require './utils'
 Transaction = require './transaction'
 handlers = require './handlers'
 
@@ -65,7 +65,7 @@ class TeeworldsEcon extends EventEmitter
     new Promise (resolve, reject) =>
       @currentTransaction.on 'end', ({ id, result }) =>
         resolve result
-        debug.connection '%s:%s %s transaction complete', id, @server.host, @server.port
+        debug.connection '%s:%s %s transaction complete', @server.host, @server.port, id
         @currentTransaction.removeAllListeners 'end'
         @currentTransaction.removeAllListeners 'error'
       @currentTransaction.on 'error', (err) =>
@@ -98,6 +98,9 @@ class TeeworldsEcon extends EventEmitter
   # @param {String} message
   motd: (message) ->
     @exec "sv_motd \"#{escape message}\""
+
+  status: () ->
+    @exec('status').then(parseStatus)
 
   # Write to econ socket
   #

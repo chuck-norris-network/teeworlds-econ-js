@@ -4,6 +4,7 @@ parseWeapon = require './parse-weapon'
 escape = require './escape'
 formatClient = require './format-client'
 generateTransactionId = require './generate-transaction-id'
+parseStatus = require './parse-status'
 debug = require('debug')('econ')
 debug.connection = require('debug')('connection')
 debug.events = require('debug')('events')
@@ -15,5 +16,6 @@ module.exports = {
   escape
   formatClient
   generateTransactionId
+  parseStatus
   debug
 }
