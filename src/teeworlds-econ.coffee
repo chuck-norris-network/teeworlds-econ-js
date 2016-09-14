@@ -1,6 +1,6 @@
 { Socket } = require 'net'
 { EventEmitter } = require 'events'
-{ split, splitText, parseWeapon, escape, debug } = require './utils'
+{ split, splitText, parseWeapon, formatClient, escape, debug } = require './utils'
 
 # Teeworlds external console wrapper class
 class TeeworldsEcon extends EventEmitter
@@ -29,7 +29,7 @@ class TeeworldsEcon extends EventEmitter
     @retryCount = null
     @retryTimer = null
 
-    @lastClientIp = null
+    @clientsInfo = {}
 
     @resetHandlers()
     @addHandler @handleEnterMessage
@@ -116,9 +116,15 @@ class TeeworldsEcon extends EventEmitter
     debug.connection 'reading from %s:%s econ: %s', @server.host, @server.port, message
 
     # client connection
-    if matches = /^\[server\]: player has entered the game. ClientID=[0-9]+ addr=([0-9a-f.:]+):[0-9]+$/.exec message
-      @lastClientIp = matches[1]
-      return
+    do (message) =>
+      if matches = /^\[server\]: player has entered the game. ClientID=([0-9]+) addr=(.+?):([0-9]+)$/.exec message
+        cid = parseInt(matches[1])
+        info = {
+          ip: matches[2]
+          port: matches[3]
+        }
+        debug.connection 'new client (%s) with ip:port %s:%s on %s:%s ', cid, info.ip, info.port, @server.host, @server.port
+        @assignClientInfo cid, info
 
     # authentication request
     if message == 'Enter password:'
@@ -164,14 +170,14 @@ class TeeworldsEcon extends EventEmitter
   #
   # @param {TeeworldsEcon} econ
   # @param {String} message
-  # @event enter { player, team, ip }
+  # @event enter { player, team, client }
   handleEnterMessage: (econ, message) ->
-    if matches = /^\[chat\]: \*\*\* '([^']+)' entered and joined the (.*)$/.exec message
+    if matches = /^\[game\]: team_join player='([0-9]+):(.+?)' team=([0-9]+)$/.exec message
       debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'enter'
       econ.emit 'enter', {
-        player: matches[1]
-        team: matches[2]
-        ip: econ.lastClientIp
+        player: matches[2]
+        team: parseInt(matches[3])
+        client: formatClient(econ.getClientInfo(parseInt(matches[1])))
       }
 
   # Leave messages handler
@@ -180,10 +186,11 @@ class TeeworldsEcon extends EventEmitter
   # @param {String} message
   # @event leave { player }
   handleLeaveMessage: (econ, message) ->
-    if matches = /^\[chat\]: \*\*\* '([^']+)' has left the game.*/.exec message
+    if matches = /^\[game\]: leave player='([0-9]+):(.+?)'$/.exec message
       debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'leave'
       econ.emit 'leave', {
-        player: matches[1]
+        player: matches[2]
+        client: formatClient(econ.getClientInfo(parseInt(matches[1])))
       }
 
   # Pickup messages handler
@@ -272,6 +279,25 @@ class TeeworldsEcon extends EventEmitter
         player: matches[2]
         time: parseFloat(matches[3]) * 1000
       }
+
+  # Assign info for client with specified ID
+  #
+  # @private
+  # @param {Integer} cid
+  # @param {Object} info
+  # @return {Object} client info
+  assignClientInfo: (cid, info) ->
+    @clientsInfo[cid] = {} unless @clientsInfo[cid]
+    Object.assign @clientsInfo[cid], info
+    return @clientsInfo[cid]
+
+  # Return awailable info for client with specified ID
+  #
+  # @private
+  # @param {Integer} cid
+  # @return {Object}
+  getClientInfo: (cid) ->
+    return @clientsInfo[cid] ? {}
 
   # Connect to server econ
   #

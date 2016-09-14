@@ -2,14 +2,15 @@ split = require 'split'
 splitText = require 'split-text'
 debug = require 'debug'
 
-module.exports = {}
-module.exports.debug = {}
 
 # Split a Text Stream into a Line Stream
 module.exports.split = split
 
 # Split a text into an array of chunks
 module.exports.splitText = splitText
+
+# Global debug
+module.exports.debug = debug 'econ'
 
 # Debug connection
 module.exports.debug.connection = debug 'econ:connection'
@@ -40,3 +41,13 @@ module.exports.escape = (input) ->
   string = string.replace /\n/g, '\\n'
 
   return string
+
+# Format client ip:port string
+#
+# @param {Object} client
+# @return {String}
+module.exports.formatClient = (client) ->
+  return null unless client
+  return null unless client.ip or client.port
+
+  return client.ip + ':' + client.port
