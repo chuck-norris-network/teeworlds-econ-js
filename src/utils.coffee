@@ -1,7 +1,7 @@
 split = require 'split'
 splitText = require 'split-text'
 debug = require 'debug'
-
+crypto = require 'crypto'
 
 # Split a Text Stream into a Line Stream
 module.exports.split = split
@@ -51,3 +51,9 @@ module.exports.formatClient = (client) ->
   return null unless client.ip or client.port
 
   return client.ip + ':' + client.port
+
+# Generate random string
+#
+# @return {String}
+module.exports.generateTransactionId = () ->
+  return crypto.randomBytes(16).toString('hex')

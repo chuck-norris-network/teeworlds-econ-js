@@ -1,5 +1,6 @@
 { Socket } = require 'net'
 { EventEmitter } = require 'events'
+Transaction = require './transaction'
 { split, splitText, parseWeapon, formatClient, escape, debug } = require './utils'
 
 # Teeworlds external console wrapper class
@@ -31,6 +32,8 @@ class TeeworldsEcon extends EventEmitter
 
     @clientsInfo = {}
 
+    @currentTransaction = null
+
     @resetHandlers()
     @addHandler @handleEnterMessage
     @addHandler @handleLeaveMessage
@@ -46,14 +49,28 @@ class TeeworldsEcon extends EventEmitter
   #
   # @param {String} command
   # @event error
-  exec: (command) ->
+  # @return {Promise}
+  exec: (command, { timeout = 30000 } = {}) ->
     unless @isConnected()
       err = new Error 'Not connected'
       debug.connection '%s:%s econ error: %s', @server.host, @server.port, err.message
       @emit 'error', err
-      return
+      return Promise.reject err
 
-    @write command
+    @currentTransaction = new Transaction command, { timeout }
+    @write @currentTransaction.getCommand()
+
+    new Promise (resolve, reject) =>
+      @currentTransaction.on 'end', ({ id, result }) =>
+        resolve result
+        debug.connection '%s:%s %s transaction complete', id, @server.host, @server.port
+        @currentTransaction.removeAllListeners 'end'
+        @currentTransaction.removeAllListeners 'error'
+      @currentTransaction.on 'error', (err) =>
+        reject err
+        debug.connection '%s:%s transaction error: %s', @server.host, @server.port, err.message
+        @currentTransaction.removeAllListeners 'end'
+        @currentTransaction.removeAllListeners 'error'
 
   # Say something to chat
   #
@@ -115,6 +132,8 @@ class TeeworldsEcon extends EventEmitter
   # @event end
   handleMessage: (message) =>
     debug.connection 'reading from %s:%s econ: %s', @server.host, @server.port, message
+
+    @currentTransaction.handleMessage message if @currentTransaction and not @currentTransaction.done
 
     # execute all event handlers sequentaly
     for handler in @handlers
