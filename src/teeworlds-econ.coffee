@@ -247,7 +247,7 @@ class TeeworldsEcon extends EventEmitter
       econ.emit 'kill', {
         killer: matches[2]
         victim: matches[4]
-        weapon: parseWeapon(parseInt(matches[3]))
+        weapon: parseWeapon(parseInt(matches[5]))
         killerClient: formatClient(econ.getClientInfo(parseInt(matches[1])))
         victimClient: formatClient(econ.getClientInfo(parseInt(matches[3])))
       }
