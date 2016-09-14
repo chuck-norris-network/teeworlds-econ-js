@@ -115,6 +115,11 @@ class TeeworldsEcon extends EventEmitter
   handleMessage: (message) =>
     debug.connection 'reading from %s:%s econ: %s', @server.host, @server.port, message
 
+    # execute all event handlers sequentaly
+    for handler in @handlers
+      result = handler.call @, @, message
+      break if result == false
+
     # client connection
     do (message) =>
       if matches = /^\[server\]: player has entered the game. ClientID=([0-9]+) addr=(.+?):([0-9]+)$/.exec message
@@ -125,6 +130,13 @@ class TeeworldsEcon extends EventEmitter
         }
         debug.connection 'new client (%s) with ip:port %s:%s on %s:%s ', cid, info.ip, info.port, @server.host, @server.port
         @assignClientInfo cid, info
+
+    # client disconnect
+    do (message) =>
+      if matches = /^\[game\]: leave player='([0-9]+):.*'$/.exec message
+        cid = parseInt(matches[1])
+        debug.connection 'client disconnect (%s) on %s:%s ', cid, @server.host, @server.port
+        @removeClientInfo cid
 
     # authentication request
     if message == 'Enter password:'
@@ -160,11 +172,6 @@ class TeeworldsEcon extends EventEmitter
       @disconnect()
       @emit 'end'
       return
-
-    # execute all event handlers sequentaly
-    for handler in @handlers
-      result = handler.call @, @, message
-      break if result == false
 
   # Enter messages handler
   #
@@ -298,7 +305,13 @@ class TeeworldsEcon extends EventEmitter
     Object.assign @clientsInfo[cid], info
     return @clientsInfo[cid]
 
-  # Return awailable info for client with specified ID
+  # Remove client info from table
+  #
+  # @param {Integer} cid
+  removeClientInfo: (cid) ->
+    delete @clientsInfo[cid]
+
+  # Return available info for client with specified ID
   #
   # @private
   # @param {Integer} cid
