@@ -31,6 +31,16 @@ class TeeworldsEcon extends EventEmitter
 
     @lastClientIp = null
 
+    @resetHandlers()
+    @addHandler @handleEnterMessage
+    @addHandler @handleLeaveMessage
+    @addHandler @handlePickupMessage
+    @addHandler @handleChatMessage
+    @addHandler @handleKillMessage
+    @addHandler @handleFlagGrabMessage
+    @addHandler @handleFlagReturnMessage
+    @addHandler @handleCaptureMessage
+
   # Execute any command on server
   #
   # @param {String} command
@@ -72,10 +82,20 @@ class TeeworldsEcon extends EventEmitter
   # Write to econ socket
   #
   # @param {String} string string
-  write: (string) ->
+  write: (message) ->
     return unless @connection and @connection.writable
-    debug.connection 'writing to %s:%s econ: %s', @server.host, @server.port, string
-    @connection.write string + '\n'
+    debug.connection 'writing to %s:%s econ: %s', @server.host, @server.port, message
+    @connection.write message + '\n'
+
+  addHandler: (handler) ->
+    @handlers.push handler
+
+  removeHandler: (handler) ->
+    index = @handlers.find (item) -> handler == item
+    @handlers.splice index, 1 unless index == -1
+
+  resetHandlers: () ->
+    @handlers = []
 
   # Method for parsing incoming econ messages
   #
@@ -99,79 +119,9 @@ class TeeworldsEcon extends EventEmitter
       @lastClientIp = matches[1]
       return
 
-    # enter
-    if matches = /^\[chat\]: \*\*\* '([^']+)' entered and joined the (.*)$/.exec message
-      @emit 'enter', {
-        player: matches[1]
-        team: matches[2]
-        ip: @lastClientIp
-      }
-      @lastClientIp = null
-
-    # leave
-    if matches = /^\[chat\]: \*\*\* '([^']+)' has left the game.*/.exec message
-      @emit 'leave', {
-        player: matches[1]
-      }
-
-    # capture
-    if matches = /^\[chat\]: \*\*\* The ([^ ]+) flag was captured by '([^']+)' \(([0-9.]+) seconds\)$/.exec message
-      @emit 'capture', {
-        flag: matches[1]
-        player: matches[2]
-        time: parseFloat(matches[3]) * 1000
-      }
-
-    # chat message
-    if matches = /^\[(teamchat|chat)\]: [0-9]+:[0-9-]+:([^:]+): (.*)$/.exec message
-      @emit 'chat', {
-        type: matches[1]
-        player: matches[2]
-        message: matches[3]
-      }
-      return
-
-    # server chat message
-    if matches = /^\[chat\]: \*\*\* (.*)$/.exec message
-      @emit 'chat', {
-        type: 'server'
-        player: null
-        message: matches[1]
-      }
-      return
-
-    # pickup
-    if matches = /^\[game\]: pickup player='[0-9-]+:([^']+)' item=(2|3)+\/([0-9\/]+)$/.exec message
-      @emit 'pickup', {
-        player: matches[1]
-        weapon: parseWeapon(parseInt(matches[3]))
-      }
-      return
-
-    # flag grab
-    if matches = /^\[game\]: flag_grab player='[0-9-]+:([^']+)'$/.exec message
-      @emit 'flaggrab', {
-        player: matches[1]
-      }
-      return
-
-    # flag return
-    if matches = /^\[game\]: flag_return$/.exec message
-      @emit 'flagreturn', {}
-      return
-
-    # kill
-    if matches = /^\[game\]: kill killer='[0-9-]+:([^']+)' victim='[0-9-]+:([^']+)' weapon=([-0-9]+) special=[0-9]+$/.exec message
-      return if matches[3] == '-3'
-      @emit 'kill', {
-        killer: matches[1]
-        victim: matches[2]
-        weapon: parseWeapon(parseInt(matches[3]))
-      }
-      return
-
     # authentication request
     if message == 'Enter password:'
+      debug.connection '%s:%s password request', @server.host, @server.port
       @write @server.password
       return
 
@@ -179,24 +129,109 @@ class TeeworldsEcon extends EventEmitter
     if message == 'Authentication successful. External console access granted.'
       unless @connected
         @connected = true
+        debug.connection '%s:%s connected', @server.host, @server.port
         @emit 'online'
       else
+        debug.connection '%s:%s reconnected', @server.host, @server.port
         @emit 'reconnected'
       return
 
     # wrong password
     if /^Wrong password [0-9\/]+.$/.exec message
-      @emit 'error', new Error "#{message} Disconnecting"
+      err = new Error "#{message} Disconnecting"
+      debug.connection '%s:%s econ error: %s', @server.host, @server.port, err.message
+      @emit 'error', err
       @disconnect()
       @emit 'end'
       return
 
     # authentication timeout
     if message == 'authentication timeout'
-      @emit 'error', new Error 'Authentication timeout. Disconnecting'
+      err = new Error 'Authentication timeout. Disconnecting'
+      debug.connection '%s:%s econ error: %s', @server.host, @server.port, err.message
+      @emit 'error', err
       @disconnect()
       @emit 'end'
       return
+
+    # execute all event handlers sequentaly
+    for handler in @handlers
+      result = handler.call @, @, message
+      break if result == false
+
+  handleEnterMessage: (econ, message) ->
+    if matches = /^\[chat\]: \*\*\* '([^']+)' entered and joined the (.*)$/.exec message
+      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'enter'
+      econ.emit 'enter', {
+        player: matches[1]
+        team: matches[2]
+        ip: econ.lastClientIp
+      }
+
+  handleLeaveMessage: (econ, message) ->
+    if matches = /^\[chat\]: \*\*\* '([^']+)' has left the game.*/.exec message
+      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'leave'
+      econ.emit 'leave', {
+        player: matches[1]
+      }
+
+  handlePickupMessage: (econ, message) ->
+    if matches = /^\[game\]: pickup player='[0-9-]+:([^']+)' item=(2|3)+\/([0-9\/]+)$/.exec message
+      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'pickup'
+      econ.emit 'pickup', {
+        player: matches[1]
+        weapon: parseWeapon(parseInt(matches[3]))
+      }
+
+  handleChatMessage: (econ, message) ->
+    # player chat message
+    if matches = /^\[(teamchat|chat)\]: [0-9]+:[0-9-]+:([^:]+): (.*)$/.exec message
+      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'chat'
+      econ.emit 'chat', {
+        type: matches[1]
+        player: matches[2]
+        message: matches[3]
+      }
+
+    # server chat message
+    if matches = /^\[chat\]: \*\*\* (.*)$/.exec message
+      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'chat'
+      econ.emit 'chat', {
+        type: 'server'
+        player: null
+        message: matches[1]
+      }
+
+  handleKillMessage: (econ, message) ->
+    if matches = /^\[game\]: kill killer='[0-9-]+:([^']+)' victim='[0-9-]+:([^']+)' weapon=([-0-9]+) special=[0-9]+$/.exec message
+      return if matches[3] == '-3'
+      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'kill'
+      econ.emit 'kill', {
+        killer: matches[1]
+        victim: matches[2]
+        weapon: parseWeapon(parseInt(matches[3]))
+      }
+
+  handleFlagGrabMessage: (econ, message) ->
+    if matches = /^\[game\]: flag_grab player='[0-9-]+:([^']+)'$/.exec message
+      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'flaggrab'
+      econ.emit 'flaggrab', {
+        player: matches[1]
+      }
+
+  handleFlagReturnMessage: (econ, message) ->
+    if /^\[game\]: flag_return$/.exec message
+      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'flagreturn'
+      econ.emit 'flagreturn', {}
+
+  handleCaptureMessage: (econ, message) ->
+    if matches = /^\[chat\]: \*\*\* The ([^ ]+) flag was captured by '([^']+)' \(([0-9.]+) seconds\)$/.exec message
+      debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'capture'
+      econ.emit 'capture', {
+        flag: matches[1]
+        player: matches[2]
+        time: parseFloat(matches[3]) * 1000
+      }
 
   # Connect to server econ
   #
