@@ -214,7 +214,7 @@ class TeeworldsEcon extends EventEmitter
     @connection = new Socket()
 
     @connection
-      .pipe split(/(\r?\n\u0000{0,})/)
+      .pipe split(/\r?\n\u0000*/)
       .on 'data', @handleMessage
 
     @connection.on 'error', (err) =>
