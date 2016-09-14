@@ -1,6 +1,6 @@
 { Socket } = require 'net'
 { EventEmitter } = require 'events'
-{ split, splitText, parseWeapon, escape } = require './utils'
+{ split, splitText, parseWeapon, escape, debug } = require './utils'
 
 # Teeworlds external console wrapper class
 class TeeworldsEcon extends EventEmitter
@@ -37,7 +37,9 @@ class TeeworldsEcon extends EventEmitter
   # @event error
   exec: (command) ->
     unless @isConnected()
-      @emit 'error', new Error 'Not connected'
+      err = new Error 'Not connected'
+      debug.connection '%s:%s econ error: %s', @server.host, @server.port, err.message
+      @emit 'error', err
       return
 
     @write command
@@ -72,6 +74,7 @@ class TeeworldsEcon extends EventEmitter
   # @param {String} string string
   write: (string) ->
     return unless @connection and @connection.writable
+    debug.connection 'writing to %s:%s econ: %s', @server.host, @server.port, string
     @connection.write string + '\n'
 
   # Method for parsing incoming econ messages
@@ -89,6 +92,8 @@ class TeeworldsEcon extends EventEmitter
   # @event error
   # @event end
   handleMessage: (message) =>
+    debug.connection 'reading from %s:%s econ: %s', @server.host, @server.port, message
+
     # client connection
     if matches = /^\[server\]: player has entered the game. ClientID=[0-9]+ addr=([0-9a-f.:]+):[0-9]+$/.exec message
       @lastClientIp = matches[1]
@@ -213,11 +218,14 @@ class TeeworldsEcon extends EventEmitter
       .on 'data', @handleMessage
 
     @connection.on 'error', (err) =>
+      debug.connection '%s:%s connection error: %s', @server.host, @server.port, err.message
       @emit 'error', err
     @connection.on 'close', @reconnect
     @connection.on 'end', @reconnect
 
     @connection.setKeepAlive true
+
+    debug.connection 'connecting to %s:%s', @server.host, @server.port
 
     @connection.connect @server.port, @server.host
 
@@ -228,6 +236,8 @@ class TeeworldsEcon extends EventEmitter
   # @event reconnect
   reconnect: () =>
     return if @retryTimer
+
+    debug.connection 'reconnecting to %s:%s', @server.host, @server.port
 
     if @retryCount == 0
       @disconnect()
@@ -245,6 +255,8 @@ class TeeworldsEcon extends EventEmitter
   # Disconnect from server
   disconnect: () =>
     return if !@connection
+
+    debug.connection 'disconnecting from %s:%s', @server.host, @server.port
 
     @connection.removeAllListeners 'data'
     @connection.removeAllListeners 'end'

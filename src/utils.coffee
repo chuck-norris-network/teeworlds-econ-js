@@ -1,11 +1,21 @@
 split = require 'split'
 splitText = require 'split-text'
+debug = require 'debug'
+
+module.exports = {}
+module.exports.debug = {}
 
 # Split a Text Stream into a Line Stream
 module.exports.split = split
 
 # Split a text into an array of chunks
 module.exports.splitText = splitText
+
+# Debug connection
+module.exports.debug.connection = debug 'econ:connection'
+
+# Debug Teeworlds events
+module.exports.debug.events = debug 'econ:events'
 
 # Parse ID of weapon item to human readable string
 #

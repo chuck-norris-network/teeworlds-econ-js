@@ -23,6 +23,7 @@
   },
   "main": "./lib/teeworlds-econ.js",
   "dependencies": {
+    "debug": "^2.2.0",
     "split": "^1.0.0",
     "split-text": "^1.0.0"
   },
