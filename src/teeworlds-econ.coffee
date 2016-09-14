@@ -81,19 +81,26 @@ class TeeworldsEcon extends EventEmitter
 
   # Write to econ socket
   #
-  # @param {String} string string
+  # @param {String} message
   write: (message) ->
     return unless @connection and @connection.writable
     debug.connection 'writing to %s:%s econ: %s', @server.host, @server.port, message
     @connection.write message + '\n'
 
+  # Add messages handler
+  #
+  # @param {Function} handler
   addHandler: (handler) ->
     @handlers.push handler
 
+  # Remove messages handler
+  #
+  # @param {Function} handler
   removeHandler: (handler) ->
     index = @handlers.find (item) -> handler == item
     @handlers.splice index, 1 unless index == -1
 
+  # Remove all messages handlers
   resetHandlers: () ->
     @handlers = []
 
@@ -101,12 +108,6 @@ class TeeworldsEcon extends EventEmitter
   #
   # @private
   # @param {String} message
-  # @event enter { player, team, ip }
-  # @event leave { player }
-  # @event capture { flag, player, time }
-  # @event chat { type, player, message }
-  # @event pickup { player, weapon }
-  # @event kill { killer, victim, weapon }
   # @event online
   # @event reconnected
   # @event error
@@ -159,6 +160,11 @@ class TeeworldsEcon extends EventEmitter
       result = handler.call @, @, message
       break if result == false
 
+  # Enter messages handler
+  #
+  # @param {TeeworldsEcon} econ
+  # @param {String} message
+  # @event enter { player, team, ip }
   handleEnterMessage: (econ, message) ->
     if matches = /^\[chat\]: \*\*\* '([^']+)' entered and joined the (.*)$/.exec message
       debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'enter'
@@ -168,6 +174,11 @@ class TeeworldsEcon extends EventEmitter
         ip: econ.lastClientIp
       }
 
+  # Leave messages handler
+  #
+  # @param {TeeworldsEcon} econ
+  # @param {String} message
+  # @event leave { player }
   handleLeaveMessage: (econ, message) ->
     if matches = /^\[chat\]: \*\*\* '([^']+)' has left the game.*/.exec message
       debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'leave'
@@ -175,6 +186,11 @@ class TeeworldsEcon extends EventEmitter
         player: matches[1]
       }
 
+  # Pickup messages handler
+  #
+  # @param {TeeworldsEcon} econ
+  # @param {String} message
+  # @event enter { player, weapon }
   handlePickupMessage: (econ, message) ->
     if matches = /^\[game\]: pickup player='[0-9-]+:([^']+)' item=(2|3)+\/([0-9\/]+)$/.exec message
       debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'pickup'
@@ -183,6 +199,11 @@ class TeeworldsEcon extends EventEmitter
         weapon: parseWeapon(parseInt(matches[3]))
       }
 
+  # Chat messages handler
+  #
+  # @param {TeeworldsEcon} econ
+  # @param {String} message
+  # @event chat { type, player, message }
   handleChatMessage: (econ, message) ->
     # player chat message
     if matches = /^\[(teamchat|chat)\]: [0-9]+:[0-9-]+:([^:]+): (.*)$/.exec message
@@ -202,6 +223,11 @@ class TeeworldsEcon extends EventEmitter
         message: matches[1]
       }
 
+  # Kill messages handler
+  #
+  # @param {TeeworldsEcon} econ
+  # @param {String} message
+  # @event kill { killer, victim, weapon }
   handleKillMessage: (econ, message) ->
     if matches = /^\[game\]: kill killer='[0-9-]+:([^']+)' victim='[0-9-]+:([^']+)' weapon=([-0-9]+) special=[0-9]+$/.exec message
       return if matches[3] == '-3'
@@ -212,6 +238,11 @@ class TeeworldsEcon extends EventEmitter
         weapon: parseWeapon(parseInt(matches[3]))
       }
 
+  # Flag grab messages handler
+  #
+  # @param {TeeworldsEcon} econ
+  # @param {String} message
+  # @event enter { player }
   handleFlagGrabMessage: (econ, message) ->
     if matches = /^\[game\]: flag_grab player='[0-9-]+:([^']+)'$/.exec message
       debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'flaggrab'
@@ -219,11 +250,20 @@ class TeeworldsEcon extends EventEmitter
         player: matches[1]
       }
 
+  # Flag return messages handler
+  #
+  # @param {TeeworldsEcon} econ
+  # @param {String} message
   handleFlagReturnMessage: (econ, message) ->
     if /^\[game\]: flag_return$/.exec message
       debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'flagreturn'
       econ.emit 'flagreturn', {}
 
+  # Flag capture messages handler
+  #
+  # @param {TeeworldsEcon} econ
+  # @param {String} message
+  # @event enter { flag, player, time }
   handleCaptureMessage: (econ, message) ->
     if matches = /^\[chat\]: \*\*\* The ([^ ]+) flag was captured by '([^']+)' \(([0-9.]+) seconds\)$/.exec message
       debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'capture'
