@@ -4,8 +4,8 @@
 #
 # @param {TeeworldsEcon} econ
 # @param {String} message
-# @event enter { ip, reason, minutes, life }
-module.exports = (econ, message) ->
+# @event netban { ip, reason, minutes, life }
+handleNetBanMessage = (econ, message) ->
   if matches = /^\[net_ban\]: '([^']+)' banned for ([0-9]+) minutes \((.+?)\)$/.exec message
     debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'netban'
     econ.emit 'netban', {
@@ -23,3 +23,5 @@ module.exports = (econ, message) ->
       minutes: null
       life: true
     }
+
+module.exports = handleNetBanMessage

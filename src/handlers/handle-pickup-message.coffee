@@ -4,8 +4,8 @@
 #
 # @param {TeeworldsEcon} econ
 # @param {String} message
-# @event enter { player, weapon, client }
-module.exports = (econ, message) ->
+# @event pickup { player, weapon, client }
+handlePickupMessage = (econ, message) ->
   if matches = /^\[game\]: pickup player='([0-9]+):(.+?)' item=(2|3)+\/([0-9]+)$/.exec message
     debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'pickup'
     econ.emit 'pickup', {
@@ -13,3 +13,5 @@ module.exports = (econ, message) ->
       weapon: parseWeapon(parseInt(matches[4]))
       client: formatClient(econ.getClientInfo(parseInt(matches[1])))
     }
+
+module.exports = handlePickupMessage

@@ -1,8 +1,9 @@
 # Escape econ command
 #
+# @private
 # @param {String} input
 # @return {String}
-module.exports = (input) ->
+escape = (input) ->
   # escape backslashes
   string = input.replace /\\/g, '\\\\'
 
@@ -13,3 +14,5 @@ module.exports = (input) ->
   string = string.replace /\n/g, '\\n'
 
   return string
+
+module.exports = escape

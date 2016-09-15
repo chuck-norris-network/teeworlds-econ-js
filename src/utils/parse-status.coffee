@@ -1,4 +1,9 @@
-module.exports = (output) ->
+# Parse status command output
+#
+# @private
+# @param {String} output
+# @return {Object}
+parseStatus = (output) ->
   output.split('\n').map (line) ->
     matches = /^\[Server\]: id=([0-9]+) addr=(.+?):([0-9]+) name='(.+?)' score=([0-9-]+) ?(\(Admin\))?$/.exec line
     {
@@ -8,3 +13,5 @@ module.exports = (output) ->
       score: parseInt(matches[5])
       admin: !!matches[6]
     }
+
+module.exports = parseStatus

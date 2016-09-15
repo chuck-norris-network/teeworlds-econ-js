@@ -99,6 +99,9 @@ class TeeworldsEcon extends EventEmitter
   motd: (message) ->
     @exec "sv_motd \"#{escape message}\""
 
+  # Fetch players list
+  #
+  # @return {Promise}
   status: () ->
     @exec('status').then(parseStatus)
 

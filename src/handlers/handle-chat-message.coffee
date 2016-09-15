@@ -5,7 +5,7 @@
 # @param {TeeworldsEcon} econ
 # @param {String} message
 # @event chat { type, player, message, team, client }
-module.exports = (econ, message) ->
+handleChatMessage = (econ, message) ->
   # player chat message
   if matches = /^\[(teamchat|chat)\]: ([0-9]+):([0-9-]+):(.+?): (.*)$/.exec message
     debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'chat'
@@ -27,3 +27,5 @@ module.exports = (econ, message) ->
       team: null
       client: null
     }
+
+module.exports = handleChatMessage

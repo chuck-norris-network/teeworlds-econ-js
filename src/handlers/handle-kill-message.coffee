@@ -5,7 +5,7 @@
 # @param {TeeworldsEcon} econ
 # @param {String} message
 # @event kill { killer, victim, weapon, killerClient, victimClient }
-module.exports = (econ, message) ->
+handleKillMessage = (econ, message) ->
   if matches = /^\[game\]: kill killer='([0-9]+):(.+?)' victim='([0-9]+)+:(.+?)' weapon=([0-9-]+) special=[0-9]+$/.exec message
     return if matches[5] == '-3'
     debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'kill'
@@ -16,3 +16,5 @@ module.exports = (econ, message) ->
       killerClient: formatClient(econ.getClientInfo(parseInt(matches[1])))
       victimClient: formatClient(econ.getClientInfo(parseInt(matches[3])))
     }
+
+module.exports = handleKillMessage
