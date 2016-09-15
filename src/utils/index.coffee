@@ -6,8 +6,8 @@ formatClient = require './format-client'
 generateTransactionId = require './generate-transaction-id'
 parseStatus = require './parse-status'
 debug = require('debug')('econ')
-debug.connection = require('debug')('connection')
-debug.events = require('debug')('events')
+debug.connection = require('debug')('econ:connection')
+debug.events = require('debug')('econ:events')
 
 module.exports = {
   split
