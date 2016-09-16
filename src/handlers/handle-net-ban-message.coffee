@@ -6,7 +6,7 @@
 # @param {String} message
 # @event netban { ip, reason, minutes, life }
 handleNetBanMessage = (econ, message) ->
-  if matches = /^\[net_ban\]: '([^']+)' banned for ([0-9]+) minutes \((.+?)\)$/.exec message
+  if matches = /^\[net_ban\]: banned '([^']+)' for ([0-9]+) minutes? \((.+?)\)$/.exec message
     debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'netban'
     econ.emit 'netban', {
       ip: matches[1]
