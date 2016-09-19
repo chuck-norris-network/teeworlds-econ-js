@@ -22,7 +22,7 @@ class Transaction extends EventEmitter
     @beginRe = new RegExp "^\\[Console\\]: begin #{@id}$"
     @endRe = new RegExp "^\\[Console\\]: end #{@id}$"
 
-    setTimeout (=> @emit 'error', new EconError('Transaction timeout')), timeout
+    @timeoutTimer = setTimeout (=> @emit 'error', new EconError('Transaction timeout')), timeout
 
   # Prepare command with begin/end parts
   #
@@ -42,6 +42,7 @@ class Transaction extends EventEmitter
       return
 
     if @endRe.test message
+      clearTimeout @timeoutTimer
       @done = true
       @emit 'end', { id: @id, result: @data.join('\n') }
       return
