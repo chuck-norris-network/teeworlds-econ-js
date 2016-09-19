@@ -177,13 +177,6 @@ class TeeworldsEcon extends EventEmitter
   handleMessage: (message) =>
     debug.connection 'reading from %s:%s econ: %s', @server.host, @server.port, message
 
-    @transactions.forEach (transaction) -> transaction.handleMessage message
-
-    # execute all event handlers sequentaly
-    for handler in @handlers
-      result = handler.call @, @, message
-      break if result == false
-
     # client connection
     do (message) =>
       if matches = /^\[server\]: player has entered the game. ClientID=([0-9]+) addr=(.+?):([0-9]+)$/.exec message
@@ -247,6 +240,17 @@ class TeeworldsEcon extends EventEmitter
       @disconnect()
       @emit 'end'
       return
+
+    # pass message to transaction handlers
+    @transactions.forEach (transaction) -> transaction.handleMessage message
+
+    # do not execute handlers while not connected
+    return unless @isConnected()
+
+    # execute all event handlers sequentaly
+    for handler in @handlers
+      result = handler.call @, @, message
+      break if result == false
 
   # Assign info for client with specified ID
   #
