@@ -72,7 +72,7 @@ econ.on('kill', (e) => {
 
 ```js
 econ.say('gg'); // Send message to chat
-econ.motd('Welcome!'); // Set message of the day
+econ.svMotd('Welcome!'); // Set message of the day
 econ.status().then((status) => { // Fetch players list
   console.log(status);
 });

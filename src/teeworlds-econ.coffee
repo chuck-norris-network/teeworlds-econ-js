@@ -96,7 +96,7 @@ class TeeworldsEcon extends EventEmitter
   # Set server message of the day
   #
   # @param {String} message
-  motd: (message) ->
+  svMotd: (message) ->
     @exec "sv_motd \"#{escape message}\""
 
   # Fetch players list
