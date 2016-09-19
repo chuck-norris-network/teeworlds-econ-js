@@ -8,6 +8,12 @@ handlers = require './handlers'
 # Teeworlds external console wrapper class
 class TeeworldsEcon extends EventEmitter
 
+  # @property {String}
+  name: ''
+
+  # @property {Array<String>}
+  clients: []
+
   # Constructor
   #
   # @param {String} host
@@ -31,9 +37,6 @@ class TeeworldsEcon extends EventEmitter
     @retryDelay = null
     @retryCount = null
     @retryTimer = null
-
-    @name = null
-    @clients = []
 
     @resetTransactions()
 
@@ -263,13 +266,13 @@ class TeeworldsEcon extends EventEmitter
 
   # Remove client info from table
   #
+  # @private
   # @param {Integer} cid
   removeClientInfo: (cid) ->
     delete @clients[cid]
 
   # Return available info for client with specified ID
   #
-  # @private
   # @param {Integer} cid
   # @return {Object}
   getClientInfo: (cid) ->
