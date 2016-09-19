@@ -57,7 +57,7 @@ class TeeworldsEcon extends EventEmitter
   # @event error
   # @return {Promise}
   exec: (command, { timeout = 30000 } = {}) ->
-    unless @isConnected()
+    unless @isConnected(false)
       err = new EconConnectionError 'Not connected'
       debug.connection '%s:%s econ error: %s', @server.host, @server.port, err.message
       @emit 'error', err
@@ -203,9 +203,6 @@ class TeeworldsEcon extends EventEmitter
 
     # connected
     if message == 'Authentication successful. External console access granted.'
-      reconnected = @connected
-      @connected = true
-
       Promise.all([
         @svName()
         @status()
@@ -214,7 +211,8 @@ class TeeworldsEcon extends EventEmitter
         @name = name
         @setClientInfo player.cid, player.client for player in status if status
 
-        unless reconnected
+        unless @connected
+          @connected = true
           debug.connection '%s:%s connected', @server.host, @server.port
           @emit 'online'
         else
@@ -347,8 +345,9 @@ class TeeworldsEcon extends EventEmitter
 
   # Check connection status
   #
-  # @return {Boolean} is connected/disconnected
-  isConnected: () ->
-    return @connection and @connection.writable and @connected
+  # @param {Boolean} initialized
+  # @return {Boolean}
+  isConnected: (initialized = true) ->
+    return @connection and @connection.writable and (!initialized or @connected)
 
 module.exports = TeeworldsEcon
