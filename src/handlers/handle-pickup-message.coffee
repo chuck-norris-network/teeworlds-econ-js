@@ -1,4 +1,4 @@
-{ formatClient, debug, parseWeapon } = require '../utils'
+{ debug, parseWeapon } = require '../utils'
 
 # Pickup messages handler
 #
@@ -11,7 +11,7 @@ handlePickupMessage = (econ, message) ->
     econ.emit 'pickup', {
       player: matches[2]
       weapon: parseWeapon(parseInt(matches[4]))
-      client: formatClient(econ.getClientInfo(parseInt(matches[1])))
+      client: econ.getClientInfo(parseInt(matches[1]))
     }
 
 module.exports = handlePickupMessage

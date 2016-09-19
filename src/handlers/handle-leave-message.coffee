@@ -1,4 +1,4 @@
-{ formatClient, debug } = require '../utils'
+{ debug } = require '../utils'
 
 # Leave messages handler
 #
@@ -10,7 +10,7 @@ handleLeaveMessage = (econ, message) ->
     debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'leave'
     econ.emit 'leave', {
       player: matches[2]
-      client: formatClient(econ.getClientInfo(parseInt(matches[1])))
+      client: econ.getClientInfo(parseInt(matches[1]))
     }
 
 module.exports = handleLeaveMessage

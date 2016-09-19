@@ -2,7 +2,6 @@ split = require 'split'
 splitText = require 'split-text'
 parseWeapon = require './parse-weapon'
 escape = require './escape'
-formatClient = require './format-client'
 generateTransactionId = require './generate-transaction-id'
 parseStatus = require './parse-status'
 parseTextValue = require './parse-text-value'
@@ -15,7 +14,6 @@ module.exports = {
   splitText
   parseWeapon
   escape
-  formatClient
   generateTransactionId
   parseStatus
   parseTextValue

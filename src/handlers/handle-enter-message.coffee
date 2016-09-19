@@ -1,4 +1,4 @@
-{ formatClient, debug } = require '../utils'
+{ debug } = require '../utils'
 
 # Enter messages handler
 #
@@ -11,7 +11,7 @@ handleEnterMessage = (econ, message) ->
     econ.emit 'enter', {
       player: matches[2]
       team: parseInt(matches[3])
-      client: formatClient(econ.getClientInfo(parseInt(matches[1])))
+      client: econ.getClientInfo(parseInt(matches[1]))
     }
 
 module.exports = handleEnterMessage

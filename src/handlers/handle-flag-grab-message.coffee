@@ -1,4 +1,4 @@
-{ formatClient, debug } = require '../utils'
+{ debug } = require '../utils'
 
 # Flag grab messages handler
 #
@@ -10,7 +10,7 @@ handleFlagGrabMessage = (econ, message) ->
     debug.events '%s:%s econ %s event', econ.server.host, econ.server.port, 'flaggrab'
     econ.emit 'flaggrab', {
       player: matches[2]
-      client: formatClient(econ.getClientInfo(parseInt(matches[1])))
+      client: econ.getClientInfo(parseInt(matches[1]))
     }
 
 module.exports = handleFlagGrabMessage

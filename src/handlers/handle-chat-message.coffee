@@ -1,4 +1,4 @@
-{ formatClient, debug } = require '../utils'
+{ debug } = require '../utils'
 
 # Chat messages handler
 #
@@ -14,7 +14,7 @@ handleChatMessage = (econ, message) ->
       player: matches[4]
       message: matches[5]
       team: parseInt(matches[3])
-      client: formatClient(econ.getClientInfo(parseInt(matches[2])))
+      client: econ.getClientInfo(parseInt(matches[2]))
     }
 
   # server chat message

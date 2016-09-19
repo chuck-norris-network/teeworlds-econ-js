@@ -4,6 +4,7 @@
 # @param {String} output
 # @return {Object}
 parseStatus = (output) ->
+  return null if output == ''
   output.split('\n').map (line) ->
     matches = /^\[Server\]: id=([0-9]+) addr=(.+?):([0-9]+) name='(.+?)' score=([0-9-]+) ?(\(Admin\))?$/.exec line
     {

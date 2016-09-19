@@ -1,4 +1,4 @@
-{ formatClient, debug, parseWeapon } = require '../utils'
+{ debug, parseWeapon } = require '../utils'
 
 # Kill messages handler
 #
@@ -13,8 +13,8 @@ handleKillMessage = (econ, message) ->
       killer: matches[2]
       victim: matches[4]
       weapon: parseWeapon(parseInt(matches[5]))
-      killerClient: formatClient(econ.getClientInfo(parseInt(matches[1])))
-      victimClient: formatClient(econ.getClientInfo(parseInt(matches[3])))
+      killerClient: econ.getClientInfo(parseInt(matches[1]))
+      victimClient: econ.getClientInfo(parseInt(matches[3]))
     }
 
 module.exports = handleKillMessage

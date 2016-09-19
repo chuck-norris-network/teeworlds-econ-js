@@ -32,9 +32,10 @@ class TeeworldsEcon extends EventEmitter
     @retryCount = null
     @retryTimer = null
 
-    @clientsInfo = {}
+    @name = null
+    @clients = []
 
-    @currentTransaction = null
+    @resetTransactions()
 
     @resetHandlers()
     @addHandler handlers.handleEnterMessage
@@ -59,20 +60,25 @@ class TeeworldsEcon extends EventEmitter
       @emit 'error', err
       return Promise.reject err
 
-    @currentTransaction = new Transaction command, { timeout }
-    @write @currentTransaction.getCommand()
+    transaction = new Transaction command, { timeout }
 
-    new Promise (resolve, reject) =>
-      @currentTransaction.on 'end', ({ id, result }) =>
+    promise = new Promise (resolve, reject) =>
+      transaction.on 'end', ({ id, result }) =>
         resolve result
         debug.connection '%s:%s %s transaction complete', @server.host, @server.port, id
-        @currentTransaction.removeAllListeners 'end'
-        @currentTransaction.removeAllListeners 'error'
-      @currentTransaction.on 'error', (err) =>
+        transaction.removeAllListeners 'end'
+        transaction.removeAllListeners 'error'
+        @removeTransaction transaction
+      transaction.on 'error', (err) =>
         reject err
         debug.connection '%s:%s transaction error: %s', @server.host, @server.port, err.message
-        @currentTransaction.removeAllListeners 'end'
-        @currentTransaction.removeAllListeners 'error'
+        transaction.removeAllListeners 'end'
+        transaction.removeAllListeners 'error'
+        @removeTransaction transaction
+
+    @scheduleTransaction transaction
+
+    return promise
 
   # Say something to chat
   #
@@ -138,6 +144,28 @@ class TeeworldsEcon extends EventEmitter
   resetHandlers: () ->
     @handlers = []
 
+  # Schedule transaction
+  #
+  # @private
+  # @param {Function} transaction
+  scheduleTransaction: (transaction) ->
+    @transactions.push transaction
+    @write transaction.getCommand()
+
+  # Remove transaction from queue
+  #
+  # @private
+  # @param {Function} transaction
+  removeTransaction: (transaction) ->
+    index = @transactions.find (item) -> transaction == item
+    @transactions.splice index, 1 unless index == -1
+
+  # Clean transactions
+  #
+  # @private
+  resetTransactions: () ->
+    @transactions = []
+
   # Method for parsing incoming econ messages
   #
   # @private
@@ -149,7 +177,7 @@ class TeeworldsEcon extends EventEmitter
   handleMessage: (message) =>
     debug.connection 'reading from %s:%s econ: %s', @server.host, @server.port, message
 
-    @currentTransaction.handleMessage message if @currentTransaction and not @currentTransaction.done
+    @transactions.forEach (transaction) -> transaction.handleMessage message
 
     # execute all event handlers sequentaly
     for handler in @handlers
@@ -160,12 +188,9 @@ class TeeworldsEcon extends EventEmitter
     do (message) =>
       if matches = /^\[server\]: player has entered the game. ClientID=([0-9]+) addr=(.+?):([0-9]+)$/.exec message
         cid = parseInt(matches[1])
-        info = {
-          ip: matches[2]
-          port: matches[3]
-        }
-        debug.connection 'new client (%s) with ip:port %s:%s on %s:%s ', cid, info.ip, info.port, @server.host, @server.port
-        @assignClientInfo cid, info
+        client = "#{matches[2]}:#{matches[3]}"
+        debug.connection 'new client (%s) with ip:port %s on %s:%s ', cid, client, @server.host, @server.port
+        @setClientInfo cid, client
 
     # client disconnect
     do (message) =>
@@ -182,13 +207,27 @@ class TeeworldsEcon extends EventEmitter
 
     # connected
     if message == 'Authentication successful. External console access granted.'
-      unless @connected
-        @connected = true
-        debug.connection '%s:%s connected', @server.host, @server.port
-        @emit 'online'
-      else
-        debug.connection '%s:%s reconnected', @server.host, @server.port
-        @emit 'reconnected'
+      reconnected = @connected
+      @connected = true
+
+      Promise.all([
+        @svName()
+        @status()
+      ])
+      .then ([name, status]) =>
+        @name = name
+        @setClientInfo player.cid, player.client for player in status if status
+
+        unless reconnected
+          debug.connection '%s:%s connected', @server.host, @server.port
+          @emit 'online'
+        else
+          debug.connection '%s:%s reconnected', @server.host, @server.port
+          @emit 'reconnected'
+      .catch (err) ->
+        debug.connection '%s:%s econ error: %s', @server.host, @server.port, err.message
+        @emit 'error', err
+
       return
 
     # wrong password
@@ -213,18 +252,16 @@ class TeeworldsEcon extends EventEmitter
   #
   # @private
   # @param {Integer} cid
-  # @param {Object} info
-  # @return {Object} client info
-  assignClientInfo: (cid, info) ->
-    @clientsInfo[cid] = {} unless @clientsInfo[cid]
-    Object.assign @clientsInfo[cid], info
-    return @clientsInfo[cid]
+  # @param {String} client
+  # @return {String}
+  setClientInfo: (cid, client) ->
+    @clients[cid] = client
 
   # Remove client info from table
   #
   # @param {Integer} cid
   removeClientInfo: (cid) ->
-    delete @clientsInfo[cid]
+    delete @clients[cid]
 
   # Return available info for client with specified ID
   #
@@ -232,7 +269,7 @@ class TeeworldsEcon extends EventEmitter
   # @param {Integer} cid
   # @return {Object}
   getClientInfo: (cid) ->
-    return @clientsInfo[cid] ? {}
+    return @clients[cid] ? null
 
   # Connect to server econ
   #
