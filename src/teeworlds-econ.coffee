@@ -1,7 +1,7 @@
 { Socket } = require 'net'
 { EventEmitter } = require 'events'
 { EconError, EconConnectionError } = require './errors'
-{ split, splitText, escape, parseStatus, debug } = require './utils'
+{ split, splitText, escape, parseStatus, parseMotd, debug } = require './utils'
 Transaction = require './transaction'
 handlers = require './handlers'
 
@@ -93,11 +93,12 @@ class TeeworldsEcon extends EventEmitter
     # execute say command
     @exec "say \"#{chunk}\"" for chunk in chunks
 
-  # Set server message of the day
+  # Get/set server message of the day
   #
   # @param {String} message
   svMotd: (message) ->
-    @exec "sv_motd \"#{escape message}\""
+    return @exec "sv_motd \"#{escape message}\"" if message
+    return @exec('sv_motd').then(parseMotd)
 
   # Fetch players list
   #
