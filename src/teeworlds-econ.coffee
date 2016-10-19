@@ -218,7 +218,7 @@ class TeeworldsEcon extends EventEmitter
         else
           debug.connection '%s:%s reconnected', @server.host, @server.port
           @emit 'reconnected'
-      .catch (err) ->
+      .catch (err) =>
         debug.connection '%s:%s econ error: %s', @server.host, @server.port, err.message
         @emit 'error', err
 
