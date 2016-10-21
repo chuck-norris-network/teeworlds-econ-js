@@ -182,7 +182,7 @@ class TeeworldsEcon extends EventEmitter
 
     # client connection
     do (message) =>
-      if matches = /^\[server\]: player has entered the game. ClientID=([0-9]+) addr=(.+?):([0-9]+)$/.exec message
+      if matches = /^\[server\]: player has entered the game. ClientID=([0-9a-f]+) addr=(.+?):([0-9]+)$/.exec message
         cid = parseInt matches[1], 16
         client = "#{matches[2]}:#{matches[3]}"
         debug.connection 'new client (%s) with ip:port %s on %s:%s ', cid, client, @server.host, @server.port
