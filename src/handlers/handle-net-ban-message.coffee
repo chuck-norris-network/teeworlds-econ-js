@@ -11,7 +11,7 @@ handleNetBanMessage = (econ, message) ->
     econ.emit 'netban', {
       ip: matches[1]
       reason: matches[3]
-      minutes: matches[2]
+      minutes: parseInt(matches[2])
       life: false
     }
 
